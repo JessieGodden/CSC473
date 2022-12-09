@@ -1,0 +1,196 @@
+// Include the Arduino Stepper Library
+#include <Stepper.h>
+
+// Include the LiquidCrystal Library
+#include <LiquidCrystal.h>
+
+// Define Constants
+// Number of steps per internal motor revolution 
+const float STEPS_PER_REVOLUTION = 16; 
+// Amount of gear reduction
+const float GEAR_REDUCTION = 64;
+// Number of steps per geared output rotation
+const float STEPS_PER_OUT_REV = STEPS_PER_REVOLUTION * GEAR_REDUCTION;
+
+// Define Variables
+// Number of Steps Required
+int StepsRequired;
+
+// Pin for Stepper Button
+int switchPin = 4;
+// Pin for Penny Button
+int switchPinPenny = 14;
+// Pin for Nickel Button
+int switchPinNickel = 15;
+// Pin for Dime Button
+int switchPinDime = 16;
+// Pin for Quarter Button
+int switchPinQuarter = 17;
+
+int switchState = 0;
+int switchStatePenny;
+int switchStateNickel;
+int switchStateDime;
+int switchStateQuarter;
+
+int lastPennyState = 0;
+int lastNickelState = 0;
+int lastDimeState = 0;
+int lastQuarterState = 0;
+
+double money = 0;
+
+// static int hits = 0;
+int prevSwitchState = 0;
+
+// Extra Boolean variables to keep track of button and motor state
+boolean current = LOW;
+boolean last = LOW;
+boolean isOpen = LOW;
+
+// Create Instance of Stepper Class
+// Specify Pins used for motor coils
+// The pins used are 10,11,12,13 
+// Connected to ULN2003 Motor Driver In1, In2, In3, In4 
+// Pins entered in sequence 1-3-2-4 for proper step sequencing
+
+Stepper steppermotor(STEPS_PER_REVOLUTION, 10, 12, 11, 13);
+// LiquidCrystal lcd(3, 4, 5, 6, 7, 8);
+
+void setup()
+{
+  pinMode(switchPin, OUTPUT);
+  pinMode(switchPinPenny, OUTPUT);
+  pinMode(switchPinNickel, OUTPUT);
+  pinMode(switchPinDime, OUTPUT);
+  pinMode(switchPinQuarter, OUTPUT);
+
+  Serial.begin(9600);
+  
+//  lcd.begin(16, 2);
+//  Serial.begin(9600);
+//  lcd.clear();
+//  lcd.setCursor(0, 0);
+//  lcd.print("Hit the Button");
+//  lcd.setCursor(0, 1);
+//  lcd.print("to increment");
+}
+
+//Corrects push button bounce (not the best debounce function)
+boolean debounce(boolean inLast){
+  boolean inCurrent = digitalRead(switchPin);
+  if(inLast != current){
+    delay(5);
+    inCurrent = digitalRead(switchPin);
+  }
+  return inCurrent;
+}
+
+void loop()
+{
+  current = debounce(last);
+  if(current == HIGH && last == LOW && isOpen == LOW){
+      StepsRequired  =  -STEPS_PER_OUT_REV; 
+      steppermotor.setSpeed(2000);   
+      steppermotor.step(StepsRequired);
+    isOpen = !isOpen;
+  }
+  if(current == HIGH && last == LOW && isOpen == HIGH){
+      StepsRequired  =  -STEPS_PER_OUT_REV; 
+      steppermotor.setSpeed(2000);   
+      steppermotor.step(StepsRequired);
+    isOpen = !isOpen;
+  }
+
+  switchStatePenny = digitalRead(14);
+  switchStateNickel = digitalRead(15);
+  switchStateDime = digitalRead(16);
+  switchStateQuarter = digitalRead(17);
+  
+  if(switchStatePenny != lastPennyState) {
+    if(switchStatePenny == HIGH) {
+      money += 0.01; 
+      Serial.print("Money in bank: ");
+      Serial.println(money);
+    }
+    else {
+      delay(1);
+  }
+  delay(1000);
+  }
+
+// Omitted code which was meant to get input from buttons to count inputed coins
+//  if(switchStateNickel != lastNickelState) {
+//    if(switchStateNickel == HIGH) {
+//      money += 0.05; 
+//      Serial.print("Money in bank: ");
+//      Serial.println(money);
+//    }
+//    else {
+//      delay(1);
+//  }
+//  delay(1000);
+//  }
+//
+//  if(switchStateDime != lastDimeState) {
+//    if(switchStateDime == HIGH) {
+//      money += 0.10; 
+//      Serial.print("Money in bank: ");
+//      Serial.println(money);
+//    }
+//    else {
+//      delay(1);
+//  }
+//  delay(1000);
+//  }
+//
+//  if(switchStateQuarter != lastQuarterState) {
+//    if(switchStateQuarter == HIGH) {
+//      money += 0.25; 
+//      Serial.print("Money in bank: ");
+//      Serial.println(money);
+//    }
+//    else {
+//      delay(1);
+//  }
+//  delay(1000);
+//  }
+  lastPennyState == switchStatePenny;
+  lastNickelState == switchStateNickel;
+  lastDimeState == switchStateDime;
+  lastQuarterState == switchStateQuarter;
+
+// Omitted code which was meant to count inputed money and display it on LCD Screen
+//  switchState = digitalRead(switchPin);
+//   Serial.print("switchState:");Serial.println(switchState);
+//  if (switchState != prevSwitchState) {
+//    if (switchState == HIGH) {
+//          hits = hits + 1;
+//          delay(10);
+//    }
+//  }
+//
+//  Serial.print("hits:");Serial.println(hits);
+//  if(hits==1)
+//  {
+//    Serial.println("hello");
+//    lcd.clear();
+//      lcd.setCursor(0, 0);
+//      lcd.print("Help is en-route");
+//  }else
+//  if(hits==2)
+//  {
+//   Serial.println("welcome");
+//    lcd.clear();
+//      lcd.setCursor(0, 0);
+//      lcd.print("press is cancel"); 
+//  }else
+//
+//  if ( hits>=3)
+//  {
+//     hits = 0;
+//     Serial.println("couter is reset:");
+//  }
+//  Serial.println("...............");
+//delay(1000);
+}
